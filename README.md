@@ -67,7 +67,8 @@ Bun.serve({
         const ctx = match(req);
 
         ctx.result; // The matching result
-        ctx.params // The parsed path parameters
+        ctx.path; // The pathname without starting slash
+        ctx.params; // The parsed path parameters
     }
 });
 ```

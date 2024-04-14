@@ -17,7 +17,7 @@ export interface RouterOptions<T> {
  * Default parsing for path
  */
 const defaultStyleMap: Record<DefaultStyle, Style> = {
-    basic: (path) => {
+    basic(path) {
         let startBracketIdx = path.indexOf('[');
 
         // Slice out extension
