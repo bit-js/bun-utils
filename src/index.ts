@@ -1,2 +1,1 @@
-export * as fs from './fs';
-export * as ws from './ws';
+export { default as ws } from './ws';

@@ -30,45 +30,13 @@ Serve the fetch handler (this step creates the server and bind all routes).
 const server = ws.serve({
     // Bun.serve options
     server: { fetch },
-    ws: { 
-        // Bun WebSocket options
-        publishToSelf: true
-    }
+
+    // Bun WebSocket options
+    ws: { publishToSelf: true }
 });
 ```
 
 Or with an already created server instance without `ws.serve`.
 ```ts
 ws.bind(server);
-```
-
-## File system router
-A fast file-system router for Bun.
-```ts
-import { fs } from '@bit-js/bun-utils';
-
-const router = fs.router.create({
-    // File glob pattern to search for
-    pattern: '**/*',
-
-    // Convert a file path to a route pathname, eg. "./[id].ts" -> "/:id".
-    // By default it handles NextJS-style file path.
-    style(path) {},
-
-    // Return the data you want to obtain from a file to match later.
-    // Defaults to returning a BunFile corresponds to the file path.
-    on(path) {}
-});
-
-const match = router.scan('./public');
-
-Bun.serve({
-    fetch(req) {
-        const ctx = match(req);
-
-        ctx.result; // The matching result
-        ctx.path; // The pathname without starting slash
-        ctx.params; // The parsed path parameters
-    }
-});
 ```

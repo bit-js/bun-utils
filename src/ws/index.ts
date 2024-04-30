@@ -60,39 +60,48 @@ class Route<T> {
     }
 }
 
-/**
- * Store all global routes to bind later
- */
-export const routes: Route<any>[] = [];
+export class WebSocketRouter {
+    /**
+     * Store all global routes to bind later
+     */
+    public readonly routes: Route<any>[] = [];
 
-/**
- * Create a route
- */
-export function route<T>(handler: Handler<T>): Route<T> {
-    const newRoute = new Route(handler);
-    routes.push(newRoute);
-    return newRoute;
+    /**
+     * Create a route
+     */
+    public route<T>(handler: Handler<T>): Route<T> {
+        const newRoute = new Route(handler);
+        this.routes.push(newRoute);
+        return newRoute;
+    }
+
+    /**
+     * Bind all registered handlers to a server
+     */
+    public bind(server: Server): void {
+        const { routes } = this;
+        for (let i = 0, { length } = routes; i < length; ++i) routes[i].bind(server);
+    }
+
+    /**
+     * Start a server and bind all registered handlers to a server
+     */
+    public serve(options: {
+        server: Serve,
+        ws?: Partial<WebSocketHandler<any>>
+    }): Server {
+        // @ts-expect-error Assign websocket handler
+        options.server.websocket = typeof options.ws === 'undefined' ? new Router() : new Router(options.ws);
+
+        const server = Bun.serve(options.server);
+
+        const { routes } = this;
+        for (let i = 0, { length } = routes; i < length; ++i) routes[i].bind(server);
+        return server;
+    }
+
+    // eslint-disable-next-line
+    static Router = WebSocketRouter;
 }
 
-/**
- * Bind all registered handlers to a server
- */
-export function bind(server: Server): void {
-    for (let i = 0, { length } = routes; i < length; ++i) routes[i].bind(server);
-}
-
-/**
- * Start a server and bind all registered handlers to a server
- */
-export function serve(options: {
-    server: Serve,
-    ws?: Partial<WebSocketHandler<any>>
-}): Server {
-    // @ts-expect-error Assign websocket handler
-    options.server.websocket = typeof options.ws === 'undefined' ? new Router() : new Router(options.ws);
-
-    const server = Bun.serve(options.server);
-    for (let i = 0, { length } = routes; i < length; ++i) routes[i].bind(server);
-    return server;
-}
-
+export default new WebSocketRouter();
