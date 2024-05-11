@@ -19,6 +19,7 @@ class Route<T> {
 
     // Default data to send if options.data is not specified
     public readonly payload: { handlers: Handler<T> };
+    public readonly data: { data: { handlers: Handler<T> } };
 
     private server!: Server;
 
@@ -36,6 +37,7 @@ class Route<T> {
 
         this.handler = handler;
         this.payload = { handlers: handler };
+        this.data = { data: this.payload };
     }
 
     public bind(server: Server): void {
@@ -47,7 +49,7 @@ class Route<T> {
         data?: T
     }): boolean {
         if (typeof options === 'undefined')
-            return this.server.upgrade(req);
+            return this.server.upgrade(req, this.data);
 
         if (typeof options.data === 'undefined')
             // @ts-expect-error Assign handlers to upgrade
