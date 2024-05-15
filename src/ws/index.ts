@@ -15,29 +15,25 @@ export interface Handler<T = undefined> {
 const noop = () => { };
 
 class Route<T> {
-    public readonly handler: Handler<T>;
-
-    // Default data to send if options.data is not specified
-    public readonly payload: { handlers: Handler<T> };
-    public readonly data: { data: { handlers: Handler<T> } };
+    public readonly handlers: Handler<T>;
+    public readonly data: { data: any };
 
     private server!: Server;
 
-    public constructor(handler: Handler<T>) {
-        if (typeof handler.open === 'undefined')
-            handler.open = noop;
-        if (typeof handler.close === 'undefined')
-            handler.close = noop;
-        if (typeof handler.ping === 'undefined')
-            handler.ping = noop;
-        if (typeof handler.pong === 'undefined')
-            handler.pong = noop;
-        if (typeof handler.drain === 'undefined')
-            handler.drain = noop;
+    public constructor(handlers: Handler<T>) {
+        if (typeof handlers.open === 'undefined')
+            handlers.open = noop;
+        if (typeof handlers.close === 'undefined')
+            handlers.close = noop;
+        if (typeof handlers.ping === 'undefined')
+            handlers.ping = noop;
+        if (typeof handlers.pong === 'undefined')
+            handlers.pong = noop;
+        if (typeof handlers.drain === 'undefined')
+            handlers.drain = noop;
 
-        this.handler = handler;
-        this.payload = { handlers: handler };
-        this.data = { data: this.payload };
+        this.handlers = handlers;
+        this.data = { data: this };
     }
 
     public bind(server: Server): void {
@@ -53,10 +49,15 @@ class Route<T> {
 
         if (typeof options.data === 'undefined')
             // @ts-expect-error Assign handlers to upgrade
-            options.data = this.payload;
-        else
+            options.data = this;
+        else {
             // @ts-expect-error Assign handlers to upgrade
-            options.data = { data: options.data, handlers: this.handler };
+            options.data = {
+                data: options.data,
+                handlers: this.handlers,
+                server: this.server
+            };
+        }
 
         return this.server.upgrade(req, options);
     }

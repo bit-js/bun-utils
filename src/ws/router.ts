@@ -2,11 +2,16 @@ import type { WebSocketHandler, ServerWebSocket as BunServerWebSocket } from 'bu
 
 export interface ServerWebSocket<T = undefined> extends BunServerWebSocket<T> {
     handlers: Required<WebSocketHandler<T>>;
+    server: BunServerWebSocket<T>;
 }
 
 export type BaseServerWebSocket = ServerWebSocket<any>;
 
-interface RouterData { data: any; handlers: BaseServerWebSocket['handlers'] }
+interface RouterData {
+    data: any;
+    handlers: BaseServerWebSocket['handlers'];
+    server: ServerWebSocket<any>;
+}
 
 /**
  * WebSocket router
@@ -21,12 +26,11 @@ export class Router implements WebSocketHandler<RouterData> {
         }
     }
 
-    public open(ws: BunServerWebSocket<RouterData>): void {
+    public open(ws: ServerWebSocket<RouterData>): void {
         const { data } = ws;
-        // @ts-expect-error Assign event handlers to server ws
         ws.handlers = data.handlers;
-        // eslint-disable-next-line
         ws.data = data.data;
+        ws.server = data.server;
 
         // eslint-disable-next-line
         data.handlers.open(ws);
